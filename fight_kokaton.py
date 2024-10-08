@@ -141,6 +141,20 @@ class Bomb:
         screen.blit(self.img, self.rct)
 
 
+class Score():
+    def __init__(self):
+        self.fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        self.color = (0, 0, 255)
+        self.score = 0
+        self.img = self.fonto.render(f"{self.score}", 0, self.color)
+        self.rct = self.img.get_rect()
+        self.rct.center = (100, HEIGHT - 50)
+
+    def update(self, screen: pg.Surface):
+        self.img = self.fonto.render(f"{self.score}", 0, self.color)
+        screen.blit(self.img, self.rct)
+
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -148,6 +162,7 @@ def main():
     bird = Bird((300, 200))
     beam = None
     bombs = [Bomb((255, 0, 0), 10) for i in range(NUM_OF_BOMBS)]
+    scoreBoard = Score()
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -164,6 +179,7 @@ def main():
             if beam != None and bomb != None and beam.rct.colliderect(bomb.rct):
                 beam, bombs[i] = None, None
                 del bombs[i]  # メモリを多く使用してしまうためdelを使用
+                scoreBoard.score += 1
                 bird.change_img(6, screen)
                 pg.display.update()
             
@@ -183,6 +199,7 @@ def main():
             beam.update(screen)
         for bomb in bombs:
             bomb.update(screen)
+        scoreBoard.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
