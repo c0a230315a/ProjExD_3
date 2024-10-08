@@ -8,6 +8,7 @@ import pygame as pg
 WIDTH = 1100  # ゲームウィンドウの幅
 HEIGHT = 650  # ゲームウィンドウの高さ
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+NUM_OF_BOMBS = 5  # 爆弾の数を設定
 
 
 def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
@@ -146,7 +147,7 @@ def main():
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
     beam = None
-    bomb = Bomb((255, 0, 0), 10)
+    bombs = [Bomb((255, 0, 0), 10) for i in range(NUM_OF_BOMBS)]
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -155,29 +156,33 @@ def main():
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 # スペースキー押下でBeamクラスのインスタンス生成
-                beam = Beam(bird)            
+                beam = Beam(bird)
+                print(bombs)            
         screen.blit(bg_img, [0, 0])
 
-        if beam != None and bomb != None and beam.rct.colliderect(bomb.rct):
-            beam = None
-            bomb = None
-            bird.change_img(6, screen)
-            pg.display.update()
-        
-        if bomb != None and bird.rct.colliderect(bomb.rct):
-            # ゲームオーバー時に，Game Overと表示
-            fonto = pg.font.Font(None, 80)
-            txt = fonto.render("Game Over", True, (255, 0, 0))
-            screen.blit(txt, [WIDTH//2-150, HEIGHT//2])
-            pg.display.update()
-            time.sleep(5)
-            return
+        for i, bomb in enumerate(bombs):
 
+            if beam != None and bomb != None and beam.rct.colliderect(bomb.rct):
+                beam, bombs[i] = None, None
+                del bombs[i]  # メモリを多く使用してしまうためdelを使用
+                bird.change_img(6, screen)
+                pg.display.update()
+            
+            if bomb != None and bird.rct.colliderect(bomb.rct):
+                # ゲームオーバー時に，Game Overと表示
+                fonto = pg.font.Font(None, 80)
+                txt = fonto.render("Game Over", True, (255, 0, 0))
+                screen.blit(txt, [WIDTH//2-150, HEIGHT//2])
+                pg.display.update()
+                time.sleep(5)
+                return
+
+        # bombs = [e for e in bombs if e != None]  # メモリを多く使用してしまうためdelを使用
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         if beam != None:
             beam.update(screen)
-        if bomb != None:   
+        for bomb in bombs:
             bomb.update(screen)
         pg.display.update()
         tmr += 1
