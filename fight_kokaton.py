@@ -160,7 +160,7 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
-    beam = None
+    beams = []
     bombs = [Bomb((255, 0, 0), 10) for i in range(NUM_OF_BOMBS)]
     scoreBoard = Score()
     clock = pg.time.Clock()
@@ -171,18 +171,24 @@ def main():
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 # スペースキー押下でBeamクラスのインスタンス生成
-                beam = Beam(bird)           
+                beams.append(Beam(bird))           
         screen.blit(bg_img, [0, 0])
 
-        for i, bomb in enumerate(bombs):
+        for i, beam in enumerate(beams):
+            for j, bomb in enumerate(bombs):
 
-            if beam != None and bomb != None and beam.rct.colliderect(bomb.rct):
-                beam, bombs[i] = None, None
-                del bombs[i]  # メモリを多く使用してしまうためdelを使用
-                scoreBoard.score += 1
-                bird.change_img(6, screen)
-                pg.display.update()
-            
+                if beam != None and bomb != None and beam.rct.colliderect(bomb.rct):
+                    beams[i], bombs[j] = None, None
+                    del beams[i], bombs[j]  # メモリを多く使用してしまうためdelを使用
+                    scoreBoard.score += 1
+                    bird.change_img(6, screen)
+                    pg.display.update()
+
+            yoko, tate = check_bound(beam.rct)
+            if not yoko or not tate:
+                del beams[i]
+
+        for bomb in bombs:    
             if bomb != None and bird.rct.colliderect(bomb.rct):
                 # ゲームオーバー時に，Game Overと表示
                 fonto = pg.font.Font(None, 80)
@@ -195,7 +201,7 @@ def main():
         # bombs = [e for e in bombs if e != None]  # メモリを多く使用してしまうためdelを使用
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
-        if beam != None:
+        for beam in beams:
             beam.update(screen)
         for bomb in bombs:
             bomb.update(screen)
